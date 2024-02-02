@@ -15,6 +15,7 @@
 #include <stdint.h>
 #include "types.h"
 #include "mcfat.h"
+#include "mcfat_config.h"
 
 
 typedef struct _MCCacheDir {
@@ -37,13 +38,10 @@ typedef struct _McFatCluster {
     int entry[MCMAN_CLUSTERFATENTRIES];
 } McFatCluster;
 
-#define MAX_CACHEENTRY 			0x24
-
 typedef struct {
     int entry[1 + (MCMAN_CLUSTERFATENTRIES * 2)];
 } McFatCache;
 
-#define MAX_CACHEDIRENTRY 		0x3
 
 typedef struct {  // size = 48
     uint8_t  status;   // 0
@@ -64,7 +62,6 @@ typedef struct {  // size = 48
     uint32_t field_2C; // 44
 } MC_FHANDLE;
 
-#define MAX_FDHANDLES 		3
 
 #define MC_IO_S_RD SCE_STM_R
 #define MC_IO_S_WR SCE_STM_W
@@ -183,8 +180,8 @@ union mcfat_PS1PDApagebuf {
 
 // Defined in main.c
 
-extern char SUPERBLOCK_MAGIC[];
-extern char SUPERBLOCK_VERSION[];
+extern const char SUPERBLOCK_MAGIC[];
+extern const char SUPERBLOCK_VERSION[];
 
 extern int mcfat_wr_block;
 extern int mcfat_wr_flag3;
@@ -201,9 +198,6 @@ extern MC_FHANDLE mcfat_fdhandles[MAX_FDHANDLES];
 extern MCDevInfo mcfat_devinfos;
 
 extern uint8_t mcfat_eccdata[512]; // size for 32 ecc
-
-// Defined in mcsio2.c
-extern uint8_t mcfat_sio2outbufs_PS1PDA[0x90];
 
 extern mcfat_mcops_t mcops;
 extern mcfat_datasource_info_t mcdsi;
