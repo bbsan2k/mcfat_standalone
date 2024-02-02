@@ -12,9 +12,6 @@
 #define __MCMAN_INTERNAL_H__
 
 
-#include <time.h>
-#include <stdio.h>
-#include <errno.h>
 #include <stdint.h>
 #include "types.h"
 #include "mcfat.h"

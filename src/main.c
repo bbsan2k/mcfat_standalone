@@ -13,6 +13,8 @@
 #include "types.h"
 #include <stdint.h>
 #include <string.h>
+#include <stdio.h>
+#include <time.h>
 
 char SUPERBLOCK_MAGIC[] = "Sony PS2 Memory Card Format ";
 char SUPERBLOCK_VERSION[] = "1.2.0.0";
