@@ -10,6 +10,7 @@
 
 #include "mcfat.h"
 #include "mcfat-internal.h"
+#include "types.h"
 #include <stdint.h>
 #include <string.h>
 
@@ -85,7 +86,7 @@ static const uint8_t mcfat_xortable[256] = {
 };
 // clang-format on
 
-//--------------------------------------------------------------
+
 void long_multiply(uint32_t v1, uint32_t v2, uint32_t *HI, uint32_t *LO)
 {
     register long a, b, c, d;
@@ -106,7 +107,7 @@ void long_multiply(uint32_t v1, uint32_t v2, uint32_t *HI, uint32_t *LO)
     *HI += a * c;
 }
 
-//--------------------------------------------------------------
+
 int mcfat_chrpos(const char *str, int chr)
 {
     const char *p;
@@ -124,39 +125,31 @@ int mcfat_chrpos(const char *str, int chr)
 
     return p - str;
 }
-//--------------------------------------------------------------
-int mcfat_start(int argc, char *argv[])
+
+int mcfat_start()
 {
-    (void)argc;
-    (void)argv;
-
-    DPRINTF("_start...\n");
-
-
-    DPRINTF("initcache...\n");
     mcfat_initcache();
-
-
-    DPRINTF("_start returns MODULE_RESIDENT_END...\n");
+    McDetectCard();
+    mcfat_setdevspec();
 
     return 0;
 }
 
-//--------------------------------------------------------------
-int McGetFormat() // Export #22 XMCMAN only
+
+int McGetFormat()
 {
     DPRINTF("McGetFormat \n");
     return mcfat_devinfos.cardform;
 }
 
-//--------------------------------------------------------------
-int McGetMcType() // Export #39
+
+int McGetMcType()
 {
     DPRINTF("McGetMcType \n");
     return mcfat_devinfos.cardtype;
 }
-//--------------------------------------------------------------
-int McGetFreeClusters() // Export #38
+
+int McGetFreeClusters()
 {
     register int r, mcfree;
     register MCDevInfo *mcdi = &mcfat_devinfos;
@@ -178,7 +171,7 @@ int McGetFreeClusters() // Export #38
     return r;
 }
 
-//--------------------------------------------------------------
+
 void mcfat_wmemset(void *buf, int size, int value)
 {
     int *p = buf;
@@ -191,7 +184,7 @@ void mcfat_wmemset(void *buf, int size, int value)
     }
 }
 
-//--------------------------------------------------------------
+
 int mcfat_calcEDC(void *buf, int size)
 {
     register uint32_t checksum;
@@ -212,7 +205,7 @@ int mcfat_calcEDC(void *buf, int size)
     return checksum & 0xff;
 }
 
-//--------------------------------------------------------------
+
 int mcfat_checkpath(const char *str) // check that a string do not contain special chars ( chr<32, ?, *)
 {
     register int i;
@@ -229,7 +222,7 @@ int mcfat_checkpath(const char *str) // check that a string do not contain speci
     return 1;
 }
 
-//--------------------------------------------------------------
+
 int mcfat_checkdirpath(const char *str1, const char *str2)
 {
     register int pos;
@@ -287,7 +280,7 @@ int mcfat_checkdirpath(const char *str1, const char *str2)
     return 1;
 }
 
-//--------------------------------------------------------------
+
 void mcfat_invhandles()
 {
     register int i = 0;
@@ -299,8 +292,8 @@ void mcfat_invhandles()
     } while (++i < MAX_FDHANDLES);
 }
 
-//--------------------------------------------------------------
-int McCloseAll(void) // Export #25 XMCMAN only
+
+int McCloseAll(void)
 {
     register int fd = 0, rv = 0;
 
@@ -322,7 +315,7 @@ int McCloseAll(void) // Export #25 XMCMAN only
 
 
 
-int McDetectCard() // Export #21 XMCMAN only
+int McDetectCard()
 {
     register int r;
     register MCDevInfo *mcdi;
@@ -345,8 +338,8 @@ int McDetectCard() // Export #21 XMCMAN only
     return r;
 }
 
-//--------------------------------------------------------------
-int McOpen( const char *filename, int flag) // Export #6
+
+int McOpen( const char *filename, int flag)
 {
     register int r;
 
@@ -366,7 +359,7 @@ int McOpen( const char *filename, int flag) // Export #6
     return r;
 }
 
-int McClose(int fd) // Export #7
+int McClose(int fd)
 {
     register MC_FHANDLE *fh;
     register int r;
@@ -417,8 +410,8 @@ int McClose(int fd) // Export #7
     return r;
 }
 
-//--------------------------------------------------------------
-int McFlush(int fd) // Export #14
+
+int McFlush(int fd)
 {
     register int r;
     register MC_FHANDLE *fh;
@@ -475,8 +468,8 @@ int McFlush(int fd) // Export #14
     return r;
 }
 
-//--------------------------------------------------------------
-int McSeek(int fd, int offset, int origin) // Export #10
+
+int McSeek(int fd, int offset, int origin)
 {
     register int r;
     register MC_FHANDLE *fh;
@@ -510,8 +503,8 @@ int McSeek(int fd, int offset, int origin) // Export #10
     return fh->position = (r < 0) ? 0 : r;
 }
 
-//--------------------------------------------------------------
-int McRead(int fd, void *buf, int length) // Export #8
+
+int McRead(int fd, void *buf, int length)
 {
     register int r;
     register MC_FHANDLE *fh;
@@ -543,8 +536,8 @@ int McRead(int fd, void *buf, int length) // Export #8
     return r;
 }
 
-//--------------------------------------------------------------
-int McWrite(int fd, void *buf, int length) // Export #9
+
+int McWrite(int fd, void *buf, int length)
 {
     register int r;
     register MC_FHANDLE *fh;
@@ -576,8 +569,8 @@ int McWrite(int fd, void *buf, int length) // Export #9
     return r;
 }
 
-//--------------------------------------------------------------
-int McGetEntSpace( const char *dirname) // Export #23 XMCMAN only
+
+int McGetEntSpace( const char *dirname)
 {
     register int r;
 
@@ -595,8 +588,8 @@ int McGetEntSpace( const char *dirname) // Export #23 XMCMAN only
     return r;
 }
 
-//--------------------------------------------------------------
-int McGetDir( const char *dirname, int flags, int maxent, sceMcTblGetDir *info) // Export #12
+
+int McGetDir( const char *dirname, int flags, int maxent, sceMcTblGetDir *info)
 {
     register int r;
 
@@ -614,7 +607,7 @@ int McGetDir( const char *dirname, int flags, int maxent, sceMcTblGetDir *info) 
     return r;
 }
 
-//--------------------------------------------------------------
+
 int mcfat_dread(int fd, mcfat_dirent_t *dirent)
 {
     register int r;
@@ -647,7 +640,7 @@ int mcfat_dread(int fd, mcfat_dirent_t *dirent)
     return r;
 }
 
-//--------------------------------------------------------------
+
 int mcfat_getstat( const char *filename, mcfat_stat_t *stat)
 {
     register int r;
@@ -666,8 +659,8 @@ int mcfat_getstat( const char *filename, mcfat_stat_t *stat)
     return r;
 }
 
-//--------------------------------------------------------------
-int McSetFileInfo( const char *filename, sceMcTblGetDir *info, int flags) // Export #16
+
+int McSetFileInfo( const char *filename, sceMcTblGetDir *info, int flags)
 {
     register int r;
 
@@ -693,8 +686,8 @@ int McSetFileInfo( const char *filename, sceMcTblGetDir *info, int flags) // Exp
     return r;
 }
 
-//--------------------------------------------------------------
-int McChDir( const char *newdir, char *currentdir) // Export #15
+
+int McChDir( const char *newdir, char *currentdir)
 {
     register int r;
 
@@ -712,8 +705,8 @@ int McChDir( const char *newdir, char *currentdir) // Export #15
     return r;
 }
 
-//--------------------------------------------------------------
-int McDelete( const char *filename, int flags) // Export #13
+
+int McDelete( const char *filename, int flags)
 {
     register int r;
 
@@ -731,8 +724,8 @@ int McDelete( const char *filename, int flags) // Export #13
     return r;
 }
 
-//--------------------------------------------------------------
-int McFormat() // Export #11
+
+int McFormat()
 {
     register int r;
 
@@ -754,8 +747,8 @@ int McFormat() // Export #11
     return r;
 }
 
-//--------------------------------------------------------------
-int McUnformat() // Export #36
+
+int McUnformat()
 {
     register int r;
 
@@ -779,7 +772,7 @@ int McUnformat() // Export #36
     return r;
 }
 
-//--------------------------------------------------------------
+
 int mcfat_getmcrtime(sceMcStDateTime *tm)
 {
 
@@ -804,20 +797,20 @@ int mcfat_getmcrtime(sceMcStDateTime *tm)
     return 0;
 }
 
-//--------------------------------------------------------------
-int McEraseBlock( int block, void **pagebuf, void *eccbuf) // Export #17 in MCMAN
+
+int McEraseBlock( int block, void **pagebuf, void *eccbuf)
 {
     return mcfat_eraseblock(block, (void **)pagebuf, eccbuf);
 }
 
-//--------------------------------------------------------------
-int McEraseBlock2( int block, void **pagebuf, void *eccbuf) // Export #17 in XMCMAN
+
+int McEraseBlock2( int block, void **pagebuf, void *eccbuf)
 {
     return mcfat_eraseblock(block, (void **)pagebuf, eccbuf);
 }
 
-//--------------------------------------------------------------
-int McReadPage( int page, void *buf) // Export #18
+
+int McReadPage( int page, void *buf)
 {
     register int r, index, ecres, retries, count, erase_byte;
     register MCDevInfo *mcdi = &mcfat_devinfos;
@@ -871,8 +864,8 @@ int McReadPage( int page, void *buf) // Export #18
     return (ecres != sceMcResSucceed) ? sceMcResNoFormat : sceMcResChangedCard;
 }
 
-//--------------------------------------------------------------
-void McDataChecksum(void *buf, void *ecc) // Export #20
+
+void McDataChecksum(void *buf, void *ecc)
 {
     register uint8_t *p, *p_ecc;
     register int i, a2, a3, t0;
@@ -901,7 +894,7 @@ void McDataChecksum(void *buf, void *ecc) // Export #20
 }
 
 
-//--------------------------------------------------------------
+
 int mcfat_correctdata(void *buf, void *ecc)
 {
     register int xor0, xor1, xor2, xor3, xor4;
@@ -948,13 +941,13 @@ int mcfat_correctdata(void *buf, void *ecc)
     return -3;
 }
 
-//--------------------------------------------------------------
+
 int mcfat_sparesize()
 { // Get ps2 mc spare size by dividing pagesize / 32
     return (mcfat_devinfos.pagesize + 0x1F) >> 5;
 }
 
-//--------------------------------------------------------------
+
 int mcfat_setdevspec()
 {
     int cardsize;
@@ -979,7 +972,7 @@ int mcfat_setdevspec()
     return sceMcResSucceed;
 }
 
-//--------------------------------------------------------------
+
 int mcfat_setdevinfos()
 {
     register int r, allocatable_clusters_per_card, iscluster_valid, current_allocatable_cluster, cluster_cnt;
@@ -1075,7 +1068,7 @@ int mcfat_setdevinfos()
     return sceMcResSucceed;
 }
 
-//--------------------------------------------------------------
+
 int mcfat_reportBadBlocks()
 {
     register int bad_blocks, erase_byte, err_limit;
@@ -1146,7 +1139,7 @@ int mcfat_reportBadBlocks()
     return sceMcResSucceed;
 }
 
-//--------------------------------------------------------------
+
 int McCreateDirentry( int parent_cluster, int num_entries, int cluster, const sceMcStDateTime *ctime)
 {
     register int r;
@@ -1218,7 +1211,7 @@ int McCreateDirentry( int parent_cluster, int num_entries, int cluster, const sc
     return sceMcResSucceed;
 }
 
-//--------------------------------------------------------------
+
 int mcfat_fatRseek(int fd)
 {
     register int entries_to_read, fat_index;
@@ -1267,7 +1260,7 @@ int mcfat_fatRseek(int fd)
     return fat_index + mcdi->alloc_offset;
 }
 
-//--------------------------------------------------------------
+
 int mcfat_fatWseek(int fd) // modify FAT to hold new content for a file
 {
     register int r, entries_to_write, fat_index;
@@ -1336,7 +1329,7 @@ int mcfat_fatWseek(int fd) // modify FAT to hold new content for a file
     return sceMcResSucceed;
 }
 
-//--------------------------------------------------------------
+
 int mcfat_findfree2( int reserve)
 {
     register int r, rfree, ifc_index, indirect_offset, fat_index, block;
@@ -1390,7 +1383,7 @@ int mcfat_findfree2( int reserve)
     return (rfree) ? rfree : sceMcResFullDevice;
 }
 
-//--------------------------------------------------------------
+
 int mcfat_getentspace( const char *dirname)
 {
     register int r, i, entspace;
@@ -1434,7 +1427,7 @@ int mcfat_getentspace( const char *dirname)
     return entspace;
 }
 
-//--------------------------------------------------------------
+
 int mcfat_cachedirentry( const char *filename, McCacheDir *pcacheDir, McFsEntry **pfse, int unknown_flag)
 {
     register int r, fsindex, cluster, fmode;
@@ -1547,7 +1540,7 @@ int mcfat_cachedirentry( const char *filename, McCacheDir *pcacheDir, McFsEntry 
     return sceMcResSucceed;
 }
 
-//--------------------------------------------------------------
+
 int mcfat_getdirinfo( McFsEntry *pfse, const char *filename, McCacheDir *pcd, int unknown_flag)
 {
     register int i, r, ret, len, pos;
@@ -1699,7 +1692,7 @@ continue_check:
     return ((ret < 1) ? 1 : 0);
 }
 
-//--------------------------------------------------------------
+
 int mcfat_writecluster( int cluster, int flag)
 {
     register int i, block;
@@ -1820,7 +1813,7 @@ int mcfat_writecluster( int cluster, int flag)
     return mcfat_wr_flag3;
 }
 
-//--------------------------------------------------------------
+
 int McSetDirEntryState( int cluster, int fsindex, int flags)
 {
     register int r, i, fat_index;
@@ -1889,7 +1882,7 @@ int McSetDirEntryState( int cluster, int fsindex, int flags)
     return sceMcResSucceed;
 }
 
-//--------------------------------------------------------------
+
 int mcfat_checkBackupBlocks()
 {
     register int r1, r2, r, eccsize;
@@ -1964,7 +1957,7 @@ check_done:
     return mcfat_eraseblock(mcdi->backup_block2, NULL, NULL);
 }
 
-//--------------------------------------------------------------
+
 int McCheckBlock( int block)
 {
     register int r, i, j, page, ecc_count, pageword_cnt, flag, erase_value;
@@ -2139,7 +2132,7 @@ lbl_8764:
 }
 
 
-//--------------------------------------------------------------
+
 void mcfat_initcache(void)
 {
     register int i, j;
@@ -2169,16 +2162,8 @@ void mcfat_initcache(void)
     mcfat_fatcache.entry[0] = 0;
 }
 
-//--------------------------------------------------------------
-int McRetOnly(int fd) // Export #37
-{
-    (void)fd;
 
-    DPRINTF("McRetOnly param %x\n", fd);
-    return sceMcResSucceed;
-}
 
-//--------------------------------------------------------------
 int mcfat_clearcache()
 {
     register int i, j;
@@ -2225,7 +2210,7 @@ int mcfat_clearcache()
     return sceMcResSucceed;
 }
 
-//--------------------------------------------------------------
+
 McCacheEntry *mcfat_getcacheentry( int cluster)
 {
     register int i;
@@ -2242,7 +2227,7 @@ McCacheEntry *mcfat_getcacheentry( int cluster)
     return NULL;
 }
 
-//--------------------------------------------------------------
+
 void mcfat_freecluster( int cluster) // release cluster from entrycache
 {
     register int i;
@@ -2257,13 +2242,13 @@ void mcfat_freecluster( int cluster) // release cluster from entrycache
     }
 }
 
-//--------------------------------------------------------------
+
 int mcfat_getFATindex( int num)
 {
     return mcfat_fatcache.entry[num];
 }
 
-//--------------------------------------------------------------
+
 void Mc1stCacheEntSetWrFlagOff(void)
 {
     McCacheEntry *mce = (McCacheEntry *)*pmcfat_mccache;
@@ -2271,13 +2256,13 @@ void Mc1stCacheEntSetWrFlagOff(void)
     mce->wr_flag = -1;
 }
 
-//--------------------------------------------------------------
+
 McCacheEntry *mcfat_get1stcacheEntp(void)
 {
     return *pmcfat_mccache;
 }
 
-//--------------------------------------------------------------
+
 void mcfat_addcacheentry(McCacheEntry *mce)
 {
     register int i;
@@ -2309,7 +2294,7 @@ lbl1:
     pmce[0] = (McCacheEntry *)mce;
 }
 
-//--------------------------------------------------------------
+
 int McFlushCache()
 {
     register int i;
@@ -2338,46 +2323,47 @@ int McFlushCache()
     return sceMcResSucceed;
 }
 
-//--------------------------------------------------------------
+
 int mcfat_flushcacheentry(McCacheEntry *mce)
 {
-    register int r, i, j, ecc_count;
-    register int temp1, temp2, offset, pageindex;
-    static int clusters_per_block, blocksize, cardtype, pagesize, sparesize, flag, cluster, block, pages_per_fatclust;
-    McCacheEntry *pmce[16]; // sp18
-    register MCDevInfo *mcdi;
-    McCacheEntry *mcee;
-    static uint8_t eccbuf[32];
-    void *p_page, *p_ecc;
+   register int r, i, j, ecc_count;
+	register int temp1, temp2, offset, pageindex;
+	static int clusters_per_block, blocksize, cardtype, pagesize, sparesize, flag, cluster, block, pages_per_fatclust;
+	McCacheEntry *pmce[16]; // sp18
+	register MCDevInfo *mcdi;
+	McCacheEntry *mcee;
+	static uint8_t eccbuf[32];
+	void *p_page, *p_ecc;
 
-    DPRINTF("mcfat_flushcacheentry mce %x cluster %x\n", (int)mce, (int)mce->cluster);
+	DPRINTF("mcfat_flushcacheentry mce %x cluster %x\n", (int)mce, (int)mce->cluster);
 
-    if (mce->wr_flag == 0)
-        return sceMcResSucceed;
+	if (mce->wr_flag == 0)
+		return sceMcResSucceed;
 
-    mcdi = (MCDevInfo *)&mcfat_devinfos;
+	mcdi = (MCDevInfo *)&mcfat_devinfos;
 
-    //mcdi->pagesize = sp84
-    pagesize = mcdi->pagesize; //sp84
-    cardtype = mcdi->cardtype;
+	//mcdi->pagesize = sp84
+	pagesize = mcdi->pagesize; //sp84
+	cardtype = mcdi->cardtype;
 
-    if (cardtype == 0) {
-        mce->wr_flag = 0;
-        return sceMcResSucceed;
-    }
+	if (cardtype == 0) {
+		mce->wr_flag = 0;
+		return sceMcResSucceed;
+	}
 
-    clusters_per_block = mcdi->clusters_per_block; //sp7c
-    block = mce->cluster / mcdi->clusters_per_block; //sp78
-    blocksize = mcdi->blocksize;  //sp80
-    sparesize = mcfat_sparesize(); //sp84
-    flag = 0; //sp88
 
-    memset((void *)pmce, 0, 64);
+	clusters_per_block = mcdi->clusters_per_block; //sp7c
+	block = mce->cluster / mcdi->clusters_per_block; //sp78
+	blocksize = mcdi->blocksize;  //sp80
+	sparesize = mcfat_sparesize(); //sp84
+	flag = 0; //sp88
 
-    i = 0; //s1
-    if (MAX_CACHEENTRY > 0) {
-        mcee = (McCacheEntry *)pmcfat_entrycache;
-        do {
+	memset((void *)pmce, 0, 64);
+
+	i = 0; //s1
+	if (MAX_CACHEENTRY > 0) {
+		mcee = (McCacheEntry *)pmcfat_entrycache;
+		do {
             temp1 = mcee->cluster / clusters_per_block;
             temp2 = mcee->cluster % clusters_per_block;
 
@@ -2386,198 +2372,198 @@ int mcfat_flushcacheentry(McCacheEntry *mce)
                 if (mcee->rd_flag == 0)
                     flag = 1;
             }
-            mcee++;
-        } while (++i < MAX_CACHEENTRY);
-    }
+        
+			mcee++;
+		} while (++i < MAX_CACHEENTRY);
+	}
 
-    if (clusters_per_block > 0) {
-        i = 0; //s1
-        pageindex = 0; //s5
-        cluster = block * clusters_per_block; // sp8c
+	if (clusters_per_block > 0) {
+		i = 0; //s1
+		pageindex = 0; //s5
+		cluster = block * clusters_per_block; // sp8c
 
-        do {
-            if (pmce[i] != 0) {
-                j = 0; // s0
-                offset = 0; //a0
-                for (j = 0; j < mcdi->pages_per_cluster; j++) {
-                    mcfat_pagedata[pageindex + j] = (void *)(pmce[i]->cl_data + offset);
-                    offset += pagesize;
-                }
-            }
-            else {
-                //s3 = s5
-                // s2 = (cluster + i) * mcdi->pages_per_cluster
-                j = 0; //s0
-                do {
-                    offset = (pageindex + j) * pagesize; // t0
-                    mcfat_pagedata[pageindex + j] = (void *)(mcfat_backupbuf + offset);
+		do {
+			if (pmce[i] != 0) {
+				j = 0; // s0
+				offset = 0; //a0
+				for (j = 0; j < mcdi->pages_per_cluster; j++) {
+					mcfat_pagedata[pageindex + j] = (void *)(pmce[i]->cl_data + offset);
+					offset += pagesize;
+				}
+			}
+			else {
+				//s3 = s5
+				// s2 = (cluster + i) * mcdi->pages_per_cluster
+				j = 0; //s0
+				do {
+					offset = (pageindex + j) * pagesize; // t0
+					mcfat_pagedata[pageindex + j] = (void *)(mcfat_backupbuf + offset);
 
-                    r = McReadPage(
-                        ((cluster + i) * mcdi->pages_per_cluster) + j, \
-                            mcfat_backupbuf + offset);
-                    if (r != sceMcResSucceed)
-                        return -51;
+					r = McReadPage(((cluster + i) * mcdi->pages_per_cluster) + j, \
+							mcfat_backupbuf + offset);
+					if (r != sceMcResSucceed)
+						return -51;
 
-                } while (++j < mcdi->pages_per_cluster);
-            }
+				} while (++j < mcdi->pages_per_cluster);
+			}
 
-            pageindex += mcdi->pages_per_cluster;
-        } while (++i < clusters_per_block);
-    }
+			pageindex += mcdi->pages_per_cluster;
+		} while (++i < clusters_per_block);
+	}
 
 lbl1:
-    if ((flag != 0) && (mcfat_badblock <= 0)) {
-        r = mcfat_eraseblock(mcdi->backup_block1, (void**)mcfat_pagedata, mcfat_eccdata);
-        if (r == sceMcResFailReplace) {
+	if ((flag != 0) && (mcfat_badblock <= 0)) {
+		r = mcfat_eraseblock( mcdi->backup_block1, (void**)mcfat_pagedata, mcfat_eccdata);
+		if (r == sceMcResFailReplace) {
 lbl2:
-            r = mcfat_replaceBackupBlock(mcdi->backup_block1);
-            mcdi->backup_block1 = r;
-            goto lbl1;
-        }
-        if (r != sceMcResSucceed)
-            return -52;
+			r = mcfat_replaceBackupBlock(mcdi->backup_block1);
+			mcdi->backup_block1 = r;
+			goto lbl1;
+		}
+		if (r != sceMcResSucceed)
+			return -52;
 
-        mcfat_pagebuf.word[0] = block | 0x80000000;
-        p_page = (void *)&mcfat_pagebuf; //s0
-        p_ecc = (void *)eccbuf; //s2 = sp58
+		mcfat_pagebuf.word[0] = block | 0x80000000;
+		p_page = (void *)&mcfat_pagebuf; //s0
+		p_ecc = (void *)eccbuf; //s2 = sp58
 
-        i = 0;	//s1
-        do {
-            if (pagesize < 0)
-                ecc_count = (pagesize + 0x7f) >> 7;
-            else
-                ecc_count = pagesize >> 7;
+		i = 0;	//s1
+		do {
+			if (pagesize < 0)
+				ecc_count = (pagesize + 0x7f) >> 7;
+			else
+				ecc_count = pagesize >> 7;
 
-            if (i >= ecc_count)
-                break;
+			if (i >= ecc_count)
+				break;
 
-            McDataChecksum(p_page, p_ecc);
+			McDataChecksum(p_page, p_ecc);
 
-            p_ecc = (void *)((uint8_t *)p_ecc + 3);
-            p_page = (void *)((uint8_t *)p_page + 128);
-            i++;
-        } while (1);
+			p_ecc = (void *)((uint8_t *)p_ecc + 3);
+			p_page = (void *)((uint8_t *)p_page + 128);
+			i++;
+		} while (1);
 
 
-        r = McWritePage(mcdi->backup_block2 * blocksize, &mcfat_pagebuf, eccbuf);
-        if (r == sceMcResFailReplace)
-            goto lbl3;
-        if (r != sceMcResSucceed)
-            return -53;
+		r = McWritePage(mcdi->backup_block2 * blocksize, &mcfat_pagebuf, eccbuf);
+		if (r == sceMcResFailReplace)
+			goto lbl3;
+		if (r != sceMcResSucceed)
+			return -53;
 
-        if (r < mcdi->blocksize) {
-            i = 0; //s0
-            p_ecc = (void *)mcfat_eccdata;
+		if (r < mcdi->blocksize) {
+			i = 0; //s0
+			p_ecc = (void *)mcfat_eccdata;
 
-            do {
-                r = McWritePage((mcdi->backup_block1 * blocksize) + i, mcfat_pagedata[i], p_ecc);
-                if (r == sceMcResFailReplace)
-                    goto lbl2;
-                if (r != sceMcResSucceed)
-                    return -54;
-                p_ecc = (void *)((uint8_t *)p_ecc + sparesize);
-            } while (++i < mcdi->blocksize);
-        }
+			do {
+				r = McWritePage((mcdi->backup_block1 * blocksize) + i, mcfat_pagedata[i], p_ecc);
+				if (r == sceMcResFailReplace)
+					goto lbl2;
+				if (r != sceMcResSucceed)
+					return -54;
+				p_ecc = (void *)((uint8_t *)p_ecc + sparesize);
+			} while (++i < mcdi->blocksize);
+		}
 
-        r = McWritePage((mcdi->backup_block2 * blocksize) + 1, &mcfat_pagebuf, eccbuf);
-        if (r == sceMcResFailReplace)
-            goto lbl3;
-        if (r != sceMcResSucceed)
-            return -55;
-    }
+		r = McWritePage((mcdi->backup_block2 * blocksize) + 1, &mcfat_pagebuf, eccbuf);
+		if (r == sceMcResFailReplace)
+			goto lbl3;
+		if (r != sceMcResSucceed)
+			return -55;
+	}
 
-    r = mcfat_eraseblock(block, (void**)mcfat_pagedata, mcfat_eccdata);
-    //if (block == 1) /////
-    //	r = sceMcResFailReplace; /////
-    if (r == sceMcResFailReplace) {
-        r = mcfat_fillbackupblock1(block, (void**)mcfat_pagedata, mcfat_eccdata);
-        for (i = 0; i < clusters_per_block; i++) {
-            if (pmce[i] != 0)
-                pmce[i]->wr_flag = 0;
-        }
-        if (r == sceMcResFailReplace)
-            return r;
-        return -58;
-    }
-    if (r != sceMcResSucceed)
-        return -57;
+	r = mcfat_eraseblock(block, (void**)mcfat_pagedata, mcfat_eccdata);
+	//if (block == 1) /////
+	//	r = sceMcResFailReplace; /////
+	if (r == sceMcResFailReplace) {
+		r = mcfat_fillbackupblock1(block, (void**)mcfat_pagedata, mcfat_eccdata);
+		for (i = 0; i < clusters_per_block; i++) {
+			if (pmce[i] != 0)
+				pmce[i]->wr_flag = 0;
+		}
+		if (r == sceMcResFailReplace)
+			return r;
+		return -58;
+	}
+	if (r != sceMcResSucceed)
+		return -57;
 
-    if (mcdi->blocksize > 0) {
-        i = 0; //s0
-        p_ecc = (void *)mcfat_eccdata;
+	if (mcdi->blocksize > 0) {
+		i = 0; //s0
+		p_ecc = (void *)mcfat_eccdata;
 
-        do {
-            if (pmce[i / mcdi->pages_per_cluster] == 0) {
-                r = McWritePage((block * blocksize) + i, mcfat_pagedata[i], p_ecc);
-                if (r == sceMcResFailReplace) {
-                    r = mcfat_fillbackupblock1(block, (void**)mcfat_pagedata, mcfat_eccdata);
-                    for (i = 0; i < clusters_per_block; i++) {
-                        if (pmce[i] != 0)
-                            pmce[i]->wr_flag = 0;
-                    }
-                    if (r == sceMcResFailReplace)
-                        return r;
-                    return -58;
-                }
-                if (r != sceMcResSucceed)
-                    return -57;
-            }
-            p_ecc = (void *)((uint8_t *)p_ecc + sparesize);
-        } while (++i < mcdi->blocksize);
-    }
+		do {
+			if (pmce[i / mcdi->pages_per_cluster] == 0) {
+				r = McWritePage((block * blocksize) + i, mcfat_pagedata[i], p_ecc);
+				if (r == sceMcResFailReplace) {
+					r = mcfat_fillbackupblock1(block, (void**)mcfat_pagedata, mcfat_eccdata);
+					for (i = 0; i < clusters_per_block; i++) {
+						if (pmce[i] != 0)
+							pmce[i]->wr_flag = 0;
+					}
+					if (r == sceMcResFailReplace)
+						return r;
+					return -58;
+				}
+				if (r != sceMcResSucceed)
+					return -57;
+			}
+			p_ecc = (void *)((uint8_t *)p_ecc + sparesize);
+		} while (++i < mcdi->blocksize);
+	}
 
-    if (mcdi->blocksize > 0) {
-        i = 0; //s0
-        p_ecc = (void *)mcfat_eccdata;
+	if (mcdi->blocksize > 0) {
+		i = 0; //s0
+		p_ecc = (void *)mcfat_eccdata;
 
-        do {
-            if (pmce[i / mcdi->pages_per_cluster] != 0) {
-                r = McWritePage((block * blocksize) + i, mcfat_pagedata[i], p_ecc);
-                if (r == sceMcResFailReplace) {
-                    r = mcfat_fillbackupblock1(block, (void**)mcfat_pagedata, mcfat_eccdata);
-                    for (i = 0; i < clusters_per_block; i++) {
-                        if (pmce[i] != 0)
-                            pmce[i]->wr_flag = 0;
-                    }
-                    if (r == sceMcResFailReplace)
-                        return r;
-                    return -58;
-                }
-                if (r != sceMcResSucceed)
-                    return -57;
-            }
-            p_ecc = (void *)((uint8_t *)p_ecc + sparesize);
-        } while (++i < mcdi->blocksize);
-    }
+		do {
+			if (pmce[i / mcdi->pages_per_cluster] != 0) {
+				r = McWritePage((block * blocksize) + i, mcfat_pagedata[i], p_ecc);
+				if (r == sceMcResFailReplace) {
+					r = mcfat_fillbackupblock1(block, (void**)mcfat_pagedata, mcfat_eccdata);
+					for (i = 0; i < clusters_per_block; i++) {
+						if (pmce[i] != 0)
+							pmce[i]->wr_flag = 0;
+					}
+					if (r == sceMcResFailReplace)
+						return r;
+					return -58;
+				}
+				if (r != sceMcResSucceed)
+					return -57;
+			}
+			p_ecc = (void *)((uint8_t *)p_ecc + sparesize);
+		} while (++i < mcdi->blocksize);
+	}
 
-    if (clusters_per_block > 0) {
-        i = 0;
-        do {
-            if (pmce[i] != 0)
-                pmce[i]->wr_flag = 0;
-        } while (++i < clusters_per_block);
-    }
+	if (clusters_per_block > 0) {
+		i = 0;
+		do {
+			if (pmce[i] != 0)
+				pmce[i]->wr_flag = 0;
+		} while (++i < clusters_per_block);
+	}
 
-    if ((flag != 0) && (mcfat_badblock <= 0)) {
-        r = mcfat_eraseblock(mcdi->backup_block2, NULL, NULL);
-        if (r == sceMcResFailReplace) {
-            goto lbl3;
-        }
-        if (r != sceMcResSucceed)
-            return -58;
-    }
-    goto lbl_exit;
+	if ((flag != 0) && (mcfat_badblock <= 0)) {
+		r = mcfat_eraseblock(mcdi->backup_block2, NULL, NULL);
+		if (r == sceMcResFailReplace) {
+			goto lbl3;
+		}
+		if (r != sceMcResSucceed)
+			return -58;
+	}
+	goto lbl_exit;
 
 lbl3:
-    r = mcfat_replaceBackupBlock(mcdi->backup_block2);
-    mcdi->backup_block2 = r;
-    goto lbl1;
+	r = mcfat_replaceBackupBlock(mcdi->backup_block2);
+	mcdi->backup_block2 = r;
+	goto lbl1;
 
 lbl_exit:
-    return sceMcResSucceed;
+	return sceMcResSucceed;
 }
 
-//--------------------------------------------------------------
+
 int McReadCluster( int cluster, McCacheEntry **pmce)
 {
     register int i;
@@ -2635,8 +2621,8 @@ int McReadCluster( int cluster, McCacheEntry **pmce)
     return sceMcResSucceed;
 }
 
-//--------------------------------------------------------------
-int McReadDirEntry( int cluster, int fsindex, McFsEntry **pfse) // Export #47 XMCMAN only
+
+int McReadDirEntry( int cluster, int fsindex, McFsEntry **pfse)
 {
     register int r, i;
     static int maxent, index, clust;
@@ -2695,8 +2681,8 @@ int McReadDirEntry( int cluster, int fsindex, McFsEntry **pfse) // Export #47 XM
     return sceMcResSucceed;
 }
 
-//--------------------------------------------------------------
-int McSetFATentry( int fat_index, int fat_entry) // Export #46 XMCMAN only
+
+int McSetFATentry( int fat_index, int fat_entry)
 {
     register int r, ifc_index, indirect_index, indirect_offset, fat_offset;
     McCacheEntry *mce;
@@ -2728,8 +2714,8 @@ int McSetFATentry( int fat_index, int fat_entry) // Export #46 XMCMAN only
     return sceMcResSucceed;
 }
 
-//--------------------------------------------------------------
-int McGetFATentry( int fat_index, int *fat_entry) // Export #44 XMCMAN only
+
+int McGetFATentry( int fat_index, int *fat_entry)
 {
     register int r, ifc_index, indirect_index, indirect_offset, fat_offset;
     McCacheEntry *mce;
@@ -2759,7 +2745,7 @@ int McGetFATentry( int fat_index, int *fat_entry) // Export #44 XMCMAN only
 }
 
 
-//--------------------------------------------------------------
+
 int mcfat_replaceBackupBlock( int block)
 {
     register int i;
@@ -2787,7 +2773,7 @@ int mcfat_replaceBackupBlock( int block)
     return sceMcResFullDevice;
 }
 
-//--------------------------------------------------------------
+
 int mcfat_fillbackupblock1( int block, void **pagedata, void *eccdata)
 {
     register int r, i, sparesize, page_offset;
@@ -2842,7 +2828,7 @@ int mcfat_fillbackupblock1( int block, void **pagedata, void *eccdata)
     return sceMcResSucceed;
 }
 
-//--------------------------------------------------------------
+
 int McReplaceBadBlock(void)
 {
     register int r, i, curentry, clust, index, offset, numifc, fat_length, temp, length;
@@ -3146,7 +3132,7 @@ lbl_e168:
     return sceMcResFailReplace;
 }
 
-//--------------------------------------------------------------
+
 int mcfat_clearsuperblock()
 {
     register int r, i;
@@ -3182,7 +3168,34 @@ int mcfat_clearsuperblock()
     return r;
 }
 
-//--------------------------------------------------------------
+int McCreateDir( const char* dirname )
+{
+    int f = 0x40;
+    int r = McOpen(dirname, f);
+    if (!r)
+    {
+        McClose(r);
+    }
+    
+    return r;
+}
+
+bool McDirExists( const char* dirname )
+{
+    mcfat_stat_t stat = { 0x0 };
+    int f = 0x1;
+    int r = mcfat_getstat2(dirname, &stat);
+
+    return r >= 0 && (stat.mode & MC_IO_S_DR);
+}
+
+bool McFileExists( const char* filename )
+{    mcfat_stat_t stat = { 0x0 };
+    int f = 0x1;
+    int r = mcfat_getstat2(filename, &stat);
+    
+    return r >= 0 && (stat.mode & MC_IO_S_FL);
+}
 
 void mcfat_set_config(mcfat_mcops_t* ops, mcfat_datasource_info_t* info)
 {
