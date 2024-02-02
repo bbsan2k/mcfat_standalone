@@ -12,7 +12,7 @@ FILE* f;
 
 int page_erase(mcfat_datasource_info_t* dsi, uint32_t page)
 {
-    memset(&mcardfile[page*PAGE_SIZE], 0x00, PAGE_SIZE);
+    memset(&mcardfile[page*PAGE_SIZE], 0xFF, PAGE_SIZE);
     return 0;
 }
 
@@ -33,9 +33,6 @@ int info(mcfat_datasource_info_t* dsi)
     *dsi = mcdsi;
     return 0;
 }
-extern int McDetectCard2();
-extern int mcfat_start(int argc, char *argv[]);
-extern int McOpen( const char *filename, int flag);
 
 int main(int argc, char* argv[])
 {
@@ -56,9 +53,8 @@ int main(int argc, char* argv[])
 
     mcfat_set_config(&mcops, &mcdsi);
     char a[0];
-    mcfat_start(0, &a);
+    mcfat_start();
 
-    //printf("Detect Card2: %d", McDetectCard2());
     sceMcTblGetDir dir = {};
 
     McDetectCard();
@@ -67,12 +63,23 @@ int main(int argc, char* argv[])
     while(McGetDir(path, 1, 1, &dir) > 0)
         printf("DIR: %s\n", dir.EntryName);
 
-    int fd = McOpen("/BEDATA-SYSTEM/history", 1);
-    printf("FD: %d\n", fd);
-    char buff[1024*1024];
-    McRead(fd,buff, 1024*1024);
-    printf(buff);
 
+    if (!McFileExists("/BADATA-SYSTEM/history"))
+    {
+        printf("File didn't exist.\n");
+        if (!McDirExists("/BADATA-SYSTEM"))
+        {
+            printf("Dir didn't exist... creating...\n");
+            McCreateDir("/BADATA-SYSTEM");
+        }
+    }
+    int f = sceMcFileCreateFile  | sceMcFileAttrWriteable | sceMcFileAttrReadable;
+    int fd = McOpen("/BADATA-SYSTEM/history", f);
+
+    printf("FD: %d\n", fd);
+    char buff[462];
+    int length = McWrite(fd,buff, 462);
+    printf("History wrote %d Bytes\n", length);
 
     return 0;
 }
