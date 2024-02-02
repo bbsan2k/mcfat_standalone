@@ -2,7 +2,91 @@
 #define __MCFAT_H_
 
 #include <stdint.h>
+#include <stdbool.h>
 
+// Defines
+
+#ifdef MCFAT_DEBUG
+    #define DPRINTF(format, args...) \
+        printf("MCFat: " format, ##args)
+#else
+    #define DPRINTF(format, args...)
+#endif
+
+
+// MCMAN basic error codes
+#define sceMcResSucceed         0
+#define sceMcResChangedCard     -1
+#define sceMcResNoFormat        -2
+#define sceMcResFullDevice      -3
+#define sceMcResNoEntry         -4
+#define sceMcResDeniedPermit    -5
+#define sceMcResNotEmpty        -6
+#define sceMcResUpLimitHandle   -7
+#define sceMcResFailReplace     -8
+#define sceMcResFailResetAuth   -11
+#define sceMcResFailDetect      -12
+#define sceMcResFailDetect2     -13
+#define sceMcResDeniedPS1Permit -51
+#define sceMcResFailAuth        -90
+
+/* High-Level File I/O */
+// Used with the statmask field of chstat() to indicate which field(s) to change.
+#define SCE_CST_MODE 0x01
+#define SCE_CST_ATTR 0x02
+#define SCE_CST_SIZE 0x04
+#define SCE_CST_CT   0x08
+#define SCE_CST_AT   0x10
+#define SCE_CST_MT   0x20
+#define SCE_CST_PRVT 0x40
+
+// Used with the mode field of chstat() to indicate what to change.
+#define SCE_STM_R 0x01
+#define SCE_STM_W 0x02
+#define SCE_STM_X 0x04
+#define SCE_STM_C 0x08
+#define SCE_STM_F 0x10
+#define SCE_STM_D 0x20
+
+
+
+// Used with the mode field of chstat() to indicate what to change.
+#define SCE_STM_R 0x01
+#define SCE_STM_W 0x02
+#define SCE_STM_X 0x04
+#define SCE_STM_C 0x08
+#define SCE_STM_F 0x10
+#define SCE_STM_D 0x20
+
+/* file attributes */
+#define sceMcFileAttrReadable    SCE_STM_R // Readable
+#define sceMcFileAttrWriteable   SCE_STM_W // Writable
+#define sceMcFileAttrExecutable  SCE_STM_X // Executable
+#define sceMcFileAttrDupProhibit SCE_STM_C // Copy Protected
+#define sceMcFileAttrFile        SCE_STM_F // Is a file.
+#define sceMcFileAttrSubdir      SCE_STM_D // Is a sub-directory
+#define sceMcFileCreateDir       0x0040    // Used internally to create directories.
+#define sceMcFileAttrClosed      0x0080    // Indicates whether a file _may_ not have been written properly. Earlier browsers do not copy this flag.
+#define sceMcFileCreateFile      0x0200    // Equivalent in value and functionality to O_CREAT.
+#define sceMcFile0400            0x0400    // Set during creation.
+#define sceMcFileAttrPDAExec     0x0800    // PDA Application (1st Generation PDA Download)
+#define sceMcFileAttrPS1         0x1000    // PlayStation-format data
+#define sceMcFileAttrHidden      0x2000    // Indicates whether the file is a hidden file (but not to the browser).
+#define sceMcFileAttrExists      0x8000    // Indicates whether the file exists.
+
+/* Valid information bit fields for sceMcSetFileInfo */
+#define sceMcFileInfoCreate 0x01 // Creation Date/Time
+#define sceMcFileInfoModify 0x02 // Modification Date/Time
+#define sceMcFileInfoAttr   0x04 // File Attributes
+
+
+
+// Memory Card device types
+#define sceMcTypeNoCard 0
+#define sceMcTypePS2    2
+
+
+// structs
 typedef struct _datasource_info
 {
     uint32_t	id;
@@ -68,6 +152,7 @@ typedef struct _MCCacheEntry
     uint8_t unused[3]; // 13
 } McCacheEntry;
 
+// Function Declarations
 
 int  McDetectCard();
 int  McOpen( const char *filename, int flags);
@@ -103,10 +188,13 @@ int McCreateDirentry( int parent_cluster, int num_entries, int cluster, const sc
 int McReadCluster( int cluster, McCacheEntry **pmce);
 int McFlushCache();
 int McSetDirEntryState( int cluster, int fsindex, int flags);
+bool McDirExists( const char* dirname );
+int McCreateDir( const char* dirname );
+bool McFileExists( const char* filename );
 
 
 void mcfat_set_config(mcfat_mcops_t* ops, mcfat_datasource_info_t* info);
-
+int mcfat_start();
 
 
 #endif
