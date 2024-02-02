@@ -17,17 +17,8 @@
 #include <errno.h>
 #include <stdint.h>
 #include "types.h"
-#include "libmc-common.h"
 #include "mcfat.h"
 
-
-
-#ifdef DEBUG
-    #define DPRINTF(format, args...) \
-        printf("MCFat: " format, ##args)
-#else
-    #define DPRINTF(format, args...)
-#endif
 
 typedef struct _MCCacheDir {
     int  cluster;   // 0
@@ -141,8 +132,6 @@ int  mcfat_getFATindex( int num);
 McCacheEntry *mcfat_get1stcacheEntp(void);
 void mcfat_addcacheentry(McCacheEntry *mce);
 int  mcfat_flushcacheentry(McCacheEntry *mce);
-int  mcfat_readdirentryPS1( int cluster, McFsEntryPS1 **pfse);
-int  mcfat_readclusterPS1( int cluster, McCacheEntry **pmce);
 int  mcfat_replaceBackupBlock( int block);
 int  mcfat_fillbackupblock1( int block, void **pagedata, void *eccdata);
 int  mcfat_clearsuperblock();
