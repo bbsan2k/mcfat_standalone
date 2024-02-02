@@ -51,9 +51,9 @@ int main(int argc, char* argv[])
     mcdsi.id = 0;
     mcdsi.mbits = 1000;
 
-    mcfat_set_config(&mcops, &mcdsi);
+    McSetConfig(&mcops, &mcdsi);
     char a[0];
-    mcfat_start();
+    McStart();
 
     sceMcTblGetDir dir = {};
 

@@ -193,8 +193,8 @@ int McCreateDir( const char* dirname );
 bool McFileExists( const char* filename );
 
 
-void mcfat_set_config(mcfat_mcops_t* ops, mcfat_datasource_info_t* info);
-int mcfat_start();
+void McSetConfig(mcfat_mcops_t* ops, mcfat_datasource_info_t* info);
+void McStart();
 
 
 #endif
