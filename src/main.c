@@ -16,8 +16,8 @@
 #include <stdio.h>
 #include <time.h>
 
-char SUPERBLOCK_MAGIC[] = "Sony PS2 Memory Card Format ";
-char SUPERBLOCK_VERSION[] = "1.2.0.0";
+const char SUPERBLOCK_MAGIC[] = "Sony PS2 Memory Card Format ";
+const char SUPERBLOCK_VERSION[] = "1.2.0.0";
 
 
 mcfat_mcops_t mcops;
@@ -128,13 +128,11 @@ int mcfat_chrpos(const char *str, int chr)
     return p - str;
 }
 
-int mcfat_start()
+void McStart()
 {
     mcfat_initcache();
     McDetectCard();
     mcfat_setdevspec();
-
-    return 0;
 }
 
 
@@ -3199,7 +3197,7 @@ bool McFileExists( const char* filename )
     return r >= 0 && (stat.mode & MC_IO_S_FL);
 }
 
-void mcfat_set_config(mcfat_mcops_t* ops, mcfat_datasource_info_t* info)
+void McSetConfig(mcfat_mcops_t* ops, mcfat_datasource_info_t* info)
 {
     mcops = *ops;
     mcdsi = *info;
