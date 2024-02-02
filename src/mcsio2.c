@@ -13,7 +13,6 @@
 
 #include "mcfat-internal.h"
 
-//--------------------------------------------------------------
 int mcfat_eraseblock( int block, void **pagebuf, void *eccbuf)
 {
     register int retries, size, ecc_offset;
@@ -56,10 +55,9 @@ int mcfat_eraseblock( int block, void **pagebuf, void *eccbuf)
         }
     }
 
-    return sceMcResNoFormat;
+    return sceMcResSucceed;
 }
 
-//--------------------------------------------------------------
 int McWritePage( int page, void *pagebuf, void *eccbuf) // Export #19
 {
     register int retries;
@@ -81,7 +79,6 @@ int McWritePage( int page, void *pagebuf, void *eccbuf) // Export #19
     return sceMcResFailReplace;
 }
 
-//--------------------------------------------------------------
 int mcfat_readpage( int page, void *buf, void *eccbuf)
 {
     // No retry logic here.
@@ -104,7 +101,6 @@ int mcfat_readpage( int page, void *buf, void *eccbuf)
     return sceMcResChangedCard;
 }
 
-//--------------------------------------------------------------
 int McGetCardSpec( int16_t *pagesize, uint16_t *blocksize, int *cardsize, uint8_t *flags)
 {
 
@@ -122,7 +118,6 @@ int McGetCardSpec( int16_t *pagesize, uint16_t *blocksize, int *cardsize, uint8_
     return sceMcResSucceed;
 }
 
-//--------------------------------------------------------------
 int mcfat_probePS2Card2()
 {
     if (!McGetFormat())
@@ -137,7 +132,6 @@ int mcfat_probePS2Card2()
     return sceMcResFailDetect2;
 }
 
-//--------------------------------------------------------------
 int mcfat_probePS2Card() //2
 {
     register int r;
